@@ -102,7 +102,7 @@ export default function App() {
         <div className="chrome-actions">
           <a
             className="icon-btn"
-            href="https://github.com/ShobhanKarthish/prompt-composer"
+            href="https://github.com/ShobhanKarthish/composer"
             target="_blank"
             rel="noreferrer"
             aria-label="View source on GitHub"
