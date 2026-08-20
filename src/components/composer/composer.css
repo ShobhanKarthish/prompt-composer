@@ -1,0 +1,414 @@
+/* ------------------------------------------------------------------
+   Composer — component styles
+   Scoped under .pc-*  ·  dark surface, neutral accent
+------------------------------------------------------------------- */
+
+.pc-root {
+  --pc-bg: #151517;
+  --pc-bg-2: #202024;
+  --pc-bg-3: #2a2a2f;
+  --pc-border: #26262b;
+  --pc-border-focus: #3a3a41;
+  --pc-text: #ededef;
+  --pc-muted: #a1a1aa;
+  --pc-faint: #6b6b74;
+  --pc-accent: #fafafa;
+  --pc-accent-fg: #0a0a0b;
+  --pc-radius: 22px;
+
+  position: relative;
+  width: 100%;
+  font-size: 15px;
+  color: var(--pc-text);
+}
+
+.pc-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--pc-bg);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  cursor: text;
+}
+
+.pc-frame:focus-within {
+  border-color: var(--pc-border-focus);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.2),
+    0 0 0 4px rgb(255 255 255 / 0.04);
+}
+
+/* --- context row: command pill + attachment chips ----------------- */
+
+.pc-context-clip {
+  overflow: hidden;
+}
+
+.pc-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 2px;
+}
+
+.pc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 4px 0 9px;
+  border-radius: 9px;
+  background: var(--pc-bg-2);
+  border: 1px solid var(--pc-border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pc-text);
+  white-space: nowrap;
+}
+
+.pc-pill svg {
+  color: var(--pc-muted);
+}
+
+.pc-pill-x {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--pc-faint);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pc-pill-x:hover {
+  background: var(--pc-bg-3);
+  color: var(--pc-text);
+}
+
+.pc-chip {
+  position: relative;
+}
+
+.pc-chip-img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid var(--pc-border);
+  object-fit: cover;
+  background: var(--pc-bg-2);
+}
+
+.pc-chip-file {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 52px;
+  padding: 0 12px 0 9px;
+  border-radius: 12px;
+  border: 1px solid var(--pc-border);
+  background: var(--pc-bg-2);
+}
+
+.pc-chip-file-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--pc-bg-3);
+  color: var(--pc-muted);
+  flex-shrink: 0;
+}
+
+.pc-chip-file-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.pc-chip-file-size {
+  font-size: 11px;
+  color: var(--pc-faint);
+}
+
+.pc-chip-x {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 2px solid var(--pc-bg);
+  background: var(--pc-bg-3);
+  color: var(--pc-muted);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease,
+    color 0.15s ease;
+}
+
+.pc-chip:hover .pc-chip-x,
+.pc-chip-x:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.pc-chip-x:hover {
+  background: #3f3f46;
+  color: var(--pc-text);
+}
+
+/* --- text area ---------------------------------------------------- */
+
+.pc-textwrap {
+  overflow: hidden;
+}
+
+.pc-textarea {
+  display: block;
+  width: 100%;
+  padding: 13px 16px 4px;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  resize: none;
+  font: inherit;
+  font-size: 15px;
+  line-height: 24px;
+  color: var(--pc-text);
+  caret-color: var(--pc-accent);
+  scrollbar-width: thin;
+  scrollbar-color: var(--pc-bg-3) transparent;
+}
+
+.pc-textarea::placeholder {
+  color: var(--pc-faint);
+}
+
+/* --- toolbar ------------------------------------------------------ */
+
+.pc-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 9px 9px;
+}
+
+.pc-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.pc-tool {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--pc-faint);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pc-tool:hover {
+  background: var(--pc-bg-2);
+  color: var(--pc-muted);
+}
+
+.pc-tool:active {
+  transform: translateY(0.5px);
+}
+
+/* --- send / stop button ------------------------------------------- */
+
+.pc-send {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--pc-bg-2);
+  color: var(--pc-faint);
+  cursor: default;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.pc-send[data-state='ready'],
+.pc-send[data-state='streaming'] {
+  background: var(--pc-accent);
+  color: var(--pc-accent-fg);
+  cursor: pointer;
+}
+
+.pc-send-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.pc-send[data-state='streaming']::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid rgb(250 250 250 / 0.35);
+  animation: pc-pulse 1.6s ease-out infinite;
+}
+
+@keyframes pc-pulse {
+  0% {
+    transform: scale(0.82);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+}
+
+/* --- drop overlay ------------------------------------------------- */
+
+.pc-drop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border-radius: var(--pc-radius);
+  border: 1.5px dashed #45454d;
+  background: rgb(10 10 11 / 0.75);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+
+.pc-drop-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pc-muted);
+}
+
+/* --- slash menu --------------------------------------------------- */
+
+.pc-menu {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 10px;
+  z-index: 10;
+  width: 320px;
+  max-width: calc(100% - 20px);
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid #2c2c31;
+  background: #1a1a1d;
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.4),
+    0 12px 40px rgb(0 0 0 / 0.55);
+  transform-origin: 12% 100%;
+}
+
+.pc-menu-header {
+  padding: 7px 10px 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pc-faint);
+}
+
+.pc-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.pc-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+.pc-hl {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.06);
+}
+
+.pc-item-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--pc-bg-2);
+  border: 1px solid var(--pc-border);
+  color: var(--pc-muted);
+  flex-shrink: 0;
+}
+
+.pc-item-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--pc-text);
+  white-space: nowrap;
+}
+
+.pc-item-desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--pc-faint);
+}
+
+.pc-item-kbd {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--pc-faint);
+  flex-shrink: 0;
+}
+
+/* --- motion safety ------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-send[data-state='streaming']::before {
+    animation: none;
+    opacity: 0.5;
+  }
+}

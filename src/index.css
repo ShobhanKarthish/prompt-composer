@@ -1,0 +1,165 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: #0a0a0b;
+  color: #ededef;
+  font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgb(250 250 250 / 0.16);
+}
+
+:focus-visible {
+  outline: 2px solid #52525b;
+  outline-offset: 2px;
+}
+
+/* --- demo page ---------------------------------------------------- */
+
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.stack {
+  width: min(620px, 100%);
+}
+
+.intro h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.intro p {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: #6b6b74;
+  text-wrap: balance;
+}
+
+.exchange {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 16px;
+  height: 210px;
+  margin-top: 8px;
+  padding-bottom: 20px;
+  overflow: hidden;
+}
+
+.bubble {
+  align-self: flex-end;
+  max-width: 78%;
+  padding: 9px 14px;
+  border-radius: 18px;
+  border-bottom-right-radius: 6px;
+  background: #202024;
+  font-size: 14.5px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.bubble-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 2px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: #8f8f98;
+}
+
+.reply {
+  min-height: 44px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #c9c9cf;
+}
+
+.word {
+  display: inline-block;
+  white-space: pre-wrap;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6b6b74;
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes dot-pulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: #55555d;
+}
+
+kbd {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 1.5px 5px;
+  margin-right: 3px;
+  border-radius: 5px;
+  border: 1px solid #26262b;
+  background: #151517;
+  color: #8f8f98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dots span {
+    animation: none;
+    opacity: 0.7;
+  }
+}
