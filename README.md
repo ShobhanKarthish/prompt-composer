@@ -4,7 +4,9 @@ A prompt input with feel.
 
 The chat input every AI app has, built the way it should feel — spring physics, interruptible animations, and the small details most implementations skip. React + [Motion](https://motion.dev), vanilla CSS, no other dependencies.
 
-> **Status:** v0.1 — early WIP, interface and name will change.
+![Slash command, streamed reply, and theme toggle in the Composer demo](media/demo.gif)
+
+> **Status:** early WIP — interface and name will change.
 
 ## What it does
 
@@ -16,6 +18,11 @@ The chat input every AI app has, built the way it should feel — spring physics
 - **Send → stop** — the send arrow morphs into a stop button while a response streams, with a soft pulse ring. Stopping mid-stream actually interrupts.
 - **Light & dark** — full theming via CSS variables on `[data-theme]`, no flash on load, animated toggle in the demo.
 - **The quiet stuff** — `prefers-reduced-motion` support, labelled controls, IME-safe `Enter`, focus preserved through every mouse interaction.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="media/hero-dark.png" />
+  <img src="media/hero-light.png" alt="Composer with a summarize command pill, an attached image, and typed text — shown in your color scheme" />
+</picture>
 
 ## Run it
 
