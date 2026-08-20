@@ -1,13 +1,26 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import type { KeyboardEvent, ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
+import type { KeyboardEvent, ReactNode, Ref } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import type { Transition } from 'motion/react'
 import { SlashMenu } from './SlashMenu'
+import { ModelMenu } from './ModelMenu'
 import { defaultCommands } from './commands'
+import { defaultModels } from './models'
+import type { ModelOption } from './models'
+import { useVoice } from './useVoice'
 import {
   ArrowUpIcon,
+  CheckIcon,
   FileTextIcon,
   ImageIcon,
+  MicIcon,
   PlusIcon,
   SlashIcon,
   StopIcon,
@@ -36,21 +49,30 @@ export type ComposerSubmission = {
   text: string
   command: SlashCommand | null
   attachments: Attachment[]
+  model: ModelOption
+}
+
+export type PromptComposerHandle = {
+  focus: () => void
+  insert: (text: string) => void
 }
 
 type PromptComposerProps = {
   placeholder?: string
   commands?: SlashCommand[]
+  models?: ModelOption[]
   /** While true the send button becomes a stop button */
   streaming?: boolean
   onSubmit?: (submission: ComposerSubmission) => void
   onStop?: () => void
   autoFocus?: boolean
+  ref?: Ref<PromptComposerHandle>
 }
 
 const MIN_HEIGHT = 41 // one 24px line + text padding
 const MAX_HEIGHT = 233 // eight lines + text padding
 const MAX_ATTACHMENTS = 10
+const WAVE_BARS = 28
 const SLASH_QUERY = /^\/[\w-]*$/
 
 function formatSize(bytes: number) {
@@ -59,17 +81,24 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function formatTime(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+}
+
 export function PromptComposer({
   placeholder = 'Ask anything, or press / for commands',
   commands = defaultCommands,
+  models = defaultModels,
   streaming = false,
   onSubmit,
   onStop,
   autoFocus = true,
+  ref,
 }: PromptComposerProps) {
   const [text, setText] = useState('')
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [command, setCommand] = useState<SlashCommand | null>(null)
+  const [model, setModel] = useState<ModelOption>(models[1] ?? models[0])
   const [menuDismissed, setMenuDismissed] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const [contentHeight, setContentHeight] = useState(MIN_HEIGHT)
@@ -79,6 +108,16 @@ export function PromptComposer({
   const taRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const dragDepth = useRef(0)
+
+  const {
+    supported: voiceSupported,
+    recording,
+    elapsed: voiceElapsed,
+    start: startVoice,
+    cancel: cancelVoice,
+    confirm: finishVoice,
+    attachBars,
+  } = useVoice()
 
   const reduced = useReducedMotion()
   const spring = useCallback(
@@ -110,6 +149,20 @@ export function PromptComposer({
     taRef.current?.focus()
   }
 
+  useImperativeHandle(ref, () => ({
+    focus: () => taRef.current?.focus(),
+    insert: (value: string) => {
+      if (recording) return
+      handleTextChange(value)
+      requestAnimationFrame(() => {
+        const ta = taRef.current
+        if (!ta) return
+        ta.focus()
+        ta.setSelectionRange(ta.value.length, ta.value.length)
+      })
+    },
+  }))
+
   // --- auto-grow --------------------------------------------------------
 
   const measure = useCallback(() => {
@@ -124,8 +177,8 @@ export function PromptComposer({
   }, [])
 
   useLayoutEffect(() => {
-    measure()
-  }, [text, measure])
+    if (!recording) measure()
+  }, [text, recording, measure])
 
   useLayoutEffect(() => {
     const frame = frameRef.current
@@ -161,6 +214,34 @@ export function PromptComposer({
     taRef.current?.focus()
   }
 
+  // --- voice ------------------------------------------------------------
+
+  const confirmVoice = () => {
+    const transcript = finishVoice()
+    if (transcript) {
+      handleTextChange(text ? `${text} ${transcript}` : transcript)
+    }
+  }
+
+  const wasRecording = useRef(false)
+  useEffect(() => {
+    if (wasRecording.current && !recording) taRef.current?.focus()
+    wasRecording.current = recording
+  }, [recording])
+
+  useEffect(() => {
+    if (!recording) return
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') cancelVoice()
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        confirmVoice()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  })
+
   // --- submit -----------------------------------------------------------
 
   const canSend =
@@ -168,7 +249,7 @@ export function PromptComposer({
 
   const submit = () => {
     if (!canSend) return
-    onSubmit?.({ text: text.trim(), command, attachments })
+    onSubmit?.({ text: text.trim(), command, attachments, model })
     setText('')
     setAttachments([])
     setCommand(null)
@@ -222,6 +303,16 @@ export function PromptComposer({
     event.dataTransfer.types.includes('Files')
 
   const showContext = command !== null || attachments.length > 0
+  const activePlaceholder = command ? command.hint : placeholder
+
+  const sendState = recording
+    ? 'ready'
+    : streaming
+      ? 'streaming'
+      : canSend
+        ? 'ready'
+        : 'idle'
+  const sendIcon = recording ? 'check' : streaming ? 'stop' : 'send'
 
   return (
     <div
@@ -359,25 +450,68 @@ export function PromptComposer({
         <motion.div
           className="pc-textwrap"
           initial={false}
-          animate={{ height: contentHeight }}
+          animate={{ height: recording ? MIN_HEIGHT : contentHeight }}
           transition={gentle}
         >
-          <textarea
-            ref={taRef}
-            className="pc-textarea"
-            rows={1}
-            value={text}
-            placeholder={command ? command.hint : placeholder}
-            autoFocus={autoFocus}
-            aria-label="Message"
-            onChange={(event) => handleTextChange(event.target.value)}
-            onKeyDown={handleKeyDown}
-            onPaste={(event) => {
-              if (event.clipboardData.files.length === 0) return
-              event.preventDefault()
-              addFiles(event.clipboardData.files)
-            }}
-          />
+          <AnimatePresence mode="popLayout" initial={false}>
+            {recording ? (
+              <motion.div
+                key="wave"
+                className="pc-wave"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <div className="pc-wave-bars" ref={attachBars}>
+                  {Array.from({ length: WAVE_BARS }, (_, i) => (
+                    <span key={i} className="pc-bar" />
+                  ))}
+                </div>
+                <span className="pc-time">{formatTime(voiceElapsed)}</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="ta"
+                className="pc-ta-holder"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <AnimatePresence initial={false}>
+                  {text === '' && (
+                    <motion.span
+                      key={activePlaceholder}
+                      className="pc-placeholder"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={snappy}
+                      aria-hidden
+                    >
+                      {activePlaceholder}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                <textarea
+                  ref={taRef}
+                  className="pc-textarea"
+                  rows={1}
+                  value={text}
+                  autoFocus={autoFocus}
+                  aria-label={activePlaceholder}
+                  onChange={(event) => handleTextChange(event.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onPaste={(event) => {
+                    if (event.clipboardData.files.length === 0) return
+                    event.preventDefault()
+                    addFiles(event.clipboardData.files)
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         <div className="pc-toolbar">
@@ -386,6 +520,7 @@ export function PromptComposer({
               type="button"
               className="pc-tool"
               aria-label="Attach files"
+              disabled={recording}
               onClick={() => fileRef.current?.click()}
             >
               <PlusIcon size={16} />
@@ -394,6 +529,7 @@ export function PromptComposer({
               type="button"
               className="pc-tool"
               aria-label="Commands"
+              disabled={recording}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 if (text === '') {
@@ -408,42 +544,94 @@ export function PromptComposer({
             </button>
           </div>
 
-          <motion.button
-            type="button"
-            className="pc-send"
-            data-state={streaming ? 'streaming' : canSend ? 'ready' : 'idle'}
-            disabled={!streaming && !canSend}
-            aria-label={streaming ? 'Stop response' : 'Send message'}
-            whileTap={canSend || streaming ? { scale: 0.85 } : undefined}
-            transition={snappy}
-            onClick={() => (streaming ? onStop?.() : submit())}
-          >
-            <AnimatePresence initial={false}>
-              {streaming ? (
+          <div className="pc-actions">
+            <ModelMenu
+              models={models}
+              selected={model}
+              onSelect={(next) => {
+                setModel(next)
+                taRef.current?.focus()
+              }}
+              disabled={recording}
+              transition={snappy}
+            />
+
+            {voiceSupported && (
+              <button
+                type="button"
+                className="pc-tool"
+                aria-label={recording ? 'Cancel recording' : 'Voice input'}
+                disabled={streaming}
+                onClick={() => (recording ? cancelVoice() : startVoice())}
+              >
+                <AnimatePresence initial={false}>
+                  {recording ? (
+                    <motion.span
+                      key="cancel"
+                      className="pc-tool-icon"
+                      initial={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
+                      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                      exit={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
+                      transition={snappy}
+                    >
+                      <XIcon size={15} />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="mic"
+                      className="pc-tool-icon"
+                      initial={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
+                      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                      exit={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
+                      transition={snappy}
+                    >
+                      <MicIcon size={15} />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+            )}
+
+            <motion.button
+              type="button"
+              className="pc-send"
+              data-state={sendState}
+              disabled={recording ? false : !streaming && !canSend}
+              aria-label={
+                recording
+                  ? 'Insert transcript'
+                  : streaming
+                    ? 'Stop response'
+                    : 'Send message'
+              }
+              whileTap={
+                canSend || streaming || recording ? { scale: 0.85 } : undefined
+              }
+              transition={snappy}
+              onClick={() =>
+                recording ? confirmVoice() : streaming ? onStop?.() : submit()
+              }
+            >
+              <AnimatePresence initial={false}>
                 <motion.span
-                  key="stop"
+                  key={sendIcon}
                   className="pc-send-icon"
                   initial={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
                   animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                   exit={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
                   transition={snappy}
                 >
-                  <StopIcon size={16} />
+                  {sendIcon === 'check' ? (
+                    <CheckIcon size={15} />
+                  ) : sendIcon === 'stop' ? (
+                    <StopIcon size={16} />
+                  ) : (
+                    <ArrowUpIcon size={16} />
+                  )}
                 </motion.span>
-              ) : (
-                <motion.span
-                  key="send"
-                  className="pc-send-icon"
-                  initial={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
-                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, scale: 0.4, filter: 'blur(3px)' }}
-                  transition={snappy}
-                >
-                  <ArrowUpIcon size={16} />
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+              </AnimatePresence>
+            </motion.button>
+          </div>
         </div>
 
         <AnimatePresence>

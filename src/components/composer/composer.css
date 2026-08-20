@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------
    Composer — component styles
-   Scoped under .pc-*  ·  dark surface, neutral accent
+   Scoped under .pc-*  ·  themes via [data-theme] on a root ancestor
 ------------------------------------------------------------------- */
 
 .pc-root {
@@ -14,12 +14,49 @@
   --pc-faint: #6b6b74;
   --pc-accent: #fafafa;
   --pc-accent-fg: #0a0a0b;
+  --pc-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  --pc-ring: rgb(255 255 255 / 0.04);
+  --pc-pulse: rgb(250 250 250 / 0.35);
+  --pc-hl-bg: rgb(255 255 255 / 0.06);
+  --pc-menu-bg: #1a1a1d;
+  --pc-menu-border: #2c2c31;
+  --pc-menu-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.4),
+    0 12px 40px rgb(0 0 0 / 0.55);
+  --pc-drop-bg: rgb(10 10 11 / 0.75);
+  --pc-drop-border: #45454d;
   --pc-radius: 22px;
 
   position: relative;
   width: 100%;
   font-size: 15px;
   color: var(--pc-text);
+}
+
+[data-theme='light'] .pc-root {
+  --pc-bg: #ffffff;
+  --pc-bg-2: #f2f2f3;
+  --pc-bg-3: #e6e6e9;
+  --pc-border: #e4e4e7;
+  --pc-border-focus: #cfcfd4;
+  --pc-text: #1a1a1e;
+  --pc-muted: #63636b;
+  --pc-faint: #8e8e96;
+  --pc-accent: #18181b;
+  --pc-accent-fg: #ffffff;
+  --pc-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 12px 32px rgb(0 0 0 / 0.05);
+  --pc-ring: rgb(0 0 0 / 0.05);
+  --pc-pulse: rgb(24 24 27 / 0.3);
+  --pc-hl-bg: rgb(0 0 0 / 0.05);
+  --pc-menu-bg: #ffffff;
+  --pc-menu-border: #e6e6e9;
+  --pc-menu-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.04),
+    0 12px 40px rgb(0 0 0 / 0.14);
+  --pc-drop-bg: rgb(255 255 255 / 0.8);
+  --pc-drop-border: #c4c4ca;
 }
 
 .pc-frame {
@@ -29,8 +66,9 @@
   background: var(--pc-bg);
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  box-shadow: var(--pc-shadow);
   transition:
+    background 0.3s ease,
     border-color 0.2s ease,
     box-shadow 0.2s ease;
   cursor: text;
@@ -39,8 +77,8 @@
 .pc-frame:focus-within {
   border-color: var(--pc-border-focus);
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.2),
-    0 0 0 4px rgb(255 255 255 / 0.04);
+    var(--pc-shadow),
+    0 0 0 4px var(--pc-ring);
 }
 
 /* --- context row: command pill + attachment chips ----------------- */
@@ -170,7 +208,7 @@
 }
 
 .pc-chip-x:hover {
-  background: #3f3f46;
+  background: var(--pc-border-focus);
   color: var(--pc-text);
 }
 
@@ -178,6 +216,24 @@
 
 .pc-textwrap {
   overflow: hidden;
+}
+
+.pc-ta-holder {
+  position: relative;
+  width: 100%;
+}
+
+.pc-placeholder {
+  position: absolute;
+  top: 13px;
+  left: 16px;
+  right: 16px;
+  line-height: 24px;
+  color: var(--pc-faint);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pc-textarea {
@@ -197,8 +253,40 @@
   scrollbar-color: var(--pc-bg-3) transparent;
 }
 
-.pc-textarea::placeholder {
+/* --- voice waveform ----------------------------------------------- */
+
+.pc-wave {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 41px;
+  width: 100%;
+  padding: 6px 16px 0;
+}
+
+.pc-wave-bars {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+}
+
+.pc-bar {
+  flex: none;
+  width: 3px;
+  height: 22px;
+  border-radius: 2px;
+  background: var(--pc-muted);
+  transform: scaleY(0.12);
+  transform-origin: center;
+  will-change: transform;
+}
+
+.pc-time {
+  font-size: 12px;
   color: var(--pc-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- toolbar ------------------------------------------------------ */
@@ -216,7 +304,14 @@
   gap: 2px;
 }
 
+.pc-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .pc-tool {
+  position: relative;
   display: grid;
   place-items: center;
   width: 30px;
@@ -226,7 +321,7 @@
   background: transparent;
   color: var(--pc-faint);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 
 .pc-tool:hover {
@@ -236,6 +331,57 @@
 
 .pc-tool:active {
   transform: translateY(0.5px);
+}
+
+.pc-tool:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.pc-tool-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+/* --- model picker ------------------------------------------------- */
+
+.pc-model {
+  position: relative;
+}
+
+.pc-model-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 7px 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--pc-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.pc-model-chip:hover {
+  background: var(--pc-bg-2);
+  color: var(--pc-text);
+}
+
+.pc-model-chip:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.pc-model-caret {
+  display: grid;
+  place-items: center;
+  color: var(--pc-faint);
 }
 
 /* --- send / stop button ------------------------------------------- */
@@ -271,7 +417,7 @@
   position: absolute;
   inset: -4px;
   border-radius: 50%;
-  border: 1.5px solid rgb(250 250 250 / 0.35);
+  border: 1.5px solid var(--pc-pulse);
   animation: pc-pulse 1.6s ease-out infinite;
 }
 
@@ -298,8 +444,8 @@
   display: grid;
   place-items: center;
   border-radius: var(--pc-radius);
-  border: 1.5px dashed #45454d;
-  background: rgb(10 10 11 / 0.75);
+  border: 1.5px dashed var(--pc-drop-border);
+  background: var(--pc-drop-bg);
   backdrop-filter: blur(3px);
   pointer-events: none;
 }
@@ -313,7 +459,7 @@
   color: var(--pc-muted);
 }
 
-/* --- slash menu --------------------------------------------------- */
+/* --- menus (slash + model) ---------------------------------------- */
 
 .pc-menu {
   position: absolute;
@@ -321,15 +467,21 @@
   left: 10px;
   z-index: 10;
   width: 320px;
-  max-width: calc(100% - 20px);
+  max-width: calc(100vw - 40px);
   padding: 5px;
   border-radius: 14px;
-  border: 1px solid #2c2c31;
-  background: #1a1a1d;
-  box-shadow:
-    0 0 0 0.5px rgb(0 0 0 / 0.4),
-    0 12px 40px rgb(0 0 0 / 0.55);
+  border: 1px solid var(--pc-menu-border);
+  background: var(--pc-menu-bg);
+  box-shadow: var(--pc-menu-shadow);
   transform-origin: 12% 100%;
+}
+
+.pc-menu-model {
+  left: auto;
+  right: 0;
+  bottom: calc(100% + 14px);
+  width: 210px;
+  transform-origin: 85% 100%;
 }
 
 .pc-menu-header {
@@ -367,7 +519,7 @@
   inset: 0;
   z-index: 0;
   border-radius: 10px;
-  background: rgb(255 255 255 / 0.06);
+  background: var(--pc-hl-bg);
 }
 
 .pc-item-icon {
@@ -395,6 +547,21 @@
   white-space: nowrap;
   font-size: 12.5px;
   color: var(--pc-faint);
+}
+
+.pc-item-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pc-item-check {
+  display: grid;
+  place-items: center;
+  color: var(--pc-text);
+  flex-shrink: 0;
 }
 
 .pc-item-kbd {

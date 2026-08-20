@@ -9,9 +9,12 @@ The chat input every AI app has, built the way it should feel — spring physics
 ## What it does
 
 - **Auto-grow** — the input grows and shrinks with an interruptible spring as you type, up to 8 lines, then scrolls internally.
-- **Slash commands** — type `/` for a filterable command menu with a sliding highlight. Arrow keys, `Enter`/`Tab` to select, `Esc` to dismiss. A selected command becomes a removable pill and swaps the placeholder.
+- **Slash commands** — type `/` for a filterable command menu with a sliding highlight. Arrow keys, `Enter`/`Tab` to select, `Esc` to dismiss. A selected command becomes a removable pill and swaps the placeholder with a crossfade.
 - **Attachments** — paste images, drag & drop, or use the picker. Thumbnails and file chips animate in and reflow with layout animations. `Backspace` on an empty input removes the last chip.
+- **Voice input** — live waveform driven by the microphone (WebAudio analyser, zero re-renders), with speech-to-text where the browser supports it. `Enter` inserts the transcript, `Esc` cancels.
+- **Model picker** — an animated dropdown in the toolbar with a sliding highlight and check state.
 - **Send → stop** — the send arrow morphs into a stop button while a response streams, with a soft pulse ring. Stopping mid-stream actually interrupts.
+- **Light & dark** — full theming via CSS variables on `[data-theme]`, no flash on load, animated toggle in the demo.
 - **The quiet stuff** — `prefers-reduced-motion` support, labelled controls, IME-safe `Enter`, focus preserved through every mouse interaction.
 
 ## Run it
@@ -29,8 +32,12 @@ Then open http://localhost:5173 — the demo streams a fake reply so every state
 src/components/composer/
   PromptComposer.tsx   # state, auto-grow, attachments, keyboard
   SlashMenu.tsx        # command menu
+  ModelMenu.tsx        # model picker
+  useVoice.ts          # mic waveform + speech-to-text
+  commands.tsx         # default slash commands
+  models.ts            # default model options
   icons.tsx            # hand-rolled SVGs
-  composer.css         # all styles, scoped under .pc-*
+  composer.css         # all styles, scoped under .pc-*, themed
 ```
 
 The component only depends on `react` and `motion` — the demo page (`src/App.tsx`) is separate so the composer can be extracted as a package later.
@@ -38,9 +45,6 @@ The component only depends on `react` and `motion` — the demo page (`src/App.t
 ## Roadmap
 
 - `@`-mentions
-- Voice input state
-- Model picker
 - Full combobox ARIA pattern
-- Light theme
 - Mobile ergonomics
 - npm package

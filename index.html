@@ -3,8 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
     <title>Composer — a prompt input with feel</title>
+    <script>
+      ;(function () {
+        var stored = localStorage.getItem('composer-theme')
+        document.documentElement.dataset.theme =
+          stored === 'dark' ? 'dark' : 'light'
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
